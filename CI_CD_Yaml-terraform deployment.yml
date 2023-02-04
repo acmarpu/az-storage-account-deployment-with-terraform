@@ -89,6 +89,13 @@ stages:
               command: 'apply'
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%      
+Templates:
+Templates let you define reusable content, logic, and parameters 
+Templates can be used two ways:
+1.	to insert reusable content
+2.	to control what is allowed in a pipeline
+
+
 templatize the yaml Pipeline
 templatize will allow us to remove all this hard-coded stuff, so we could use it for 
 other projects with in azure devops
