@@ -1,0 +1,231 @@
+az group create -l westus -n terraform-rg
+
+az ad sp create-for-rbac -n terraform-rg --role contributor --scope /subscriptions/id/rg/name
+
+
+create storage account
+az storage account create --resource-group terraform-rg --name sktaccount --sku Standrad_LRD --encryption-service blob
+
+az storage account key --resource-group terraform-rg --account-name sktacccount
+
+azstorage container create --name sktcontainer --account-name sktacccount  --account-key xxxxxx (which got from above command)
+
+service connection
+create repo
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+create simple tf file
+terraform.tf
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "StorageAccount-ResourceGroup"
+    storage_account_name = "abcd1234"
+    container_name       = "tfstate"
+    key                  = "prod.terraform.tfstate"
+  }
+}
+
+data ""azurerm_client_config" "current" {}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+YAML Pipeline structure
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+stages:
+- stage: validate
+  jobs:
+  - job: validate
+    continueonError: false
+    steps:
+    - task: TerraformInstaller@0
+      displayName: latest
+      inputs:
+        terraformVersion: 'latest'
+
+    - task: TerraformTaskV3@3
+      displayName: init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+
+    - task: TerraformTaskV3@3
+      displayName: validate
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        
+
+        
+- stage: deploy
+  jobs:
+  - deployment: deploy_terraform
+    continueonError: false
+    environment: 'dev'
+    strategy:
+     runOnce:
+       deploy:
+        steps: 
+          - checkout: self
+
+          - task: TerraformInstaller@0
+            displayName = latest
+            inputs:
+              terraformVersion: 'latest'
+
+          - task: TerraformTaskV3@3
+            displayName: init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+
+          - task: TerraformTaskV3@3
+            displayName: apply
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%      
+templatize the yaml Pipeline
+templatize will allow us to remove all this hard-coded stuff, so we could use it for 
+other projects with in azure devops
+
+
+
+we are going to creating 3 yaml files 
+terraform-validate.yml
+terraform-deploy.yml
+azure-pipeline.yml
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+terraform-validate.yml
+
+parameters:
+  terraformVersion: ''
+  serviceprincipal: ''
+  resourcegroup: ''
+  storageAccountName: ''
+  storageContainerName: ''
+  storageKey: ''
+
+
+jobs:
+  - job: validate
+    continueonError: false
+    steps:
+    - task: TerraformInstaller@0
+      displayName: latest
+      inputs:
+        terraformVersion: ${{parameters.terraformVersion}}
+
+    - task: TerraformTaskV3@3
+      displayName: init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+
+    - task: TerraformTaskV3@3
+      displayName: validate
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+terraform-deploy.yml
+
+parameters:
+  terraformVersion: ''
+  serviceprincipal: ''
+  resourcegroup: ''
+  storageAccountName: ''
+  storageContainerName: ''
+  storageKey: ''
+  deployEnv: ''
+
+
+jobs:
+  - deployment: deploy_terraform
+    continueonError: false
+    environment: ${{parameters.deployEnv}}
+    strategy:
+     runOnce:
+       deploy:
+        steps: 
+          - checkout: self
+
+          - task: TerraformInstaller@0
+            displayName = latest
+            inputs:
+              terraformVersion: 'latest'
+
+          - task: TerraformTaskV3@3
+            displayName: init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+
+          - task: TerraformTaskV3@3
+            displayName: apply
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+azure-pipeline.yml
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+
+resources:
+ repositories:
+   - repository: temlates
+     name: tutorials/temlates
+     type: git
+jobs:
+- template: terraform-validate.yml@templates
+  parameters:
+    terraformVersion: '0.12.26'
+    serviceprincipal: 'azure-spn'
+    resourcegroup: 'rg'
+    storageAccountName: 'st'
+    storageContainerName: 'con'
+    storageKey: 'tf.tfstate'
+    
+
+- template: terraform-deploy.yml@templates
+  parameters:
+    terraformVersion: '0.12.26'
+    serviceprincipal: 'azure-spn'
+    resourcegroup: 'rg'
+    storageAccountName: 'st'
+    storageContainerName: 'con'
+    storageKey: 'tf.tfstate'
+    deployEnv: 'dev'
+              
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Ref: https://www.youtube.com/watch?v=7CsmBO8KR4U&ab_channel=geralexgr
+
+parameters:
+- name: image
+  displayName: pool image
+  type: string
+  default: ubuntu-latest
+  values:
+    - windows-latest
+    - ubuntu-latest
+    - macos-latest
+
+variables:
+- name: myvar
+  value: ${{parameters.image}}
+
+
+condition: or { eq (variables.myvar, 'ubuntu-latest'), eq(variables.myvar, 'windows-lates')}
+
+
+
