@@ -28,11 +28,12 @@ terraform {
   }
 }
 
-data ""azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-YAML Pipeline structure
+in the pipeline section, we are going to define our YAML file structure
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 stages:
 - stage: validate
