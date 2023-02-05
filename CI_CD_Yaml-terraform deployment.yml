@@ -1,94 +1,9 @@
-#ref: https://www.youtube.com/watch?v=kqwzqWcSCYM&ab_channel=skunklabz
-
-# Crete Azure Resource Group
-### az group create -l westus -n terraform-rg
-
-# Create Service principal and assihan the scope to subscription
-### az ad sp create-for-rbac -n terraform-rg --role contributor --scope /subscriptions/id/rg/name
-
-#create storage account
-### az storage account create --resource-group terraform-rg --name sktaccount --sku Standrad_LRD --encryption-service blob
-
-### az storage account key --resource-group terraform-rg --account-name sktacccount
-
-### azstorage container create --name sktcontainer --account-name sktacccount  --account-key xxxxxx (which got from above command)
-
-#Create Azure service connection
-# create Azure repo 
-
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-create simple terraform.tf file
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-terraform {
-  backend "azurerm" {
-    resource_group_name  = "StorageAccount-ResourceGroup"
-    storage_account_name = "abcd1234"
-    container_name       = "tfstate"
-    key                  = "prod.terraform.tfstate"
-  }
-}
-
-data "azurerm_client_config" "current" {}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 in the pipeline section, we are going to define our YAML file structure
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-stages:
-- stage: validate
-  jobs:
-  - job: validate
-    continueonError: false
-    steps:
-    - task: TerraformInstaller@0
-      displayName: latest
-      inputs:
-        terraformVersion: 'latest'
 
-    - task: TerraformTaskV3@3
-      displayName: init
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-
-    - task: TerraformTaskV3@3
-      displayName: validate
-      inputs:
-        provider: 'azurerm'
-        command: 'validate'
-        
-
-        
-- stage: deploy
-  jobs:
-  - deployment: deploy_terraform
-    continueonError: false
-    environment: 'dev'
-    strategy:
-     runOnce:
-       deploy:
-        steps: 
-          - checkout: self
-
-          - task: TerraformInstaller@0
-            displayName = latest
-            inputs:
-              terraformVersion: 'latest'
-
-          - task: TerraformTaskV3@3
-            displayName: init
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-
-          - task: TerraformTaskV3@3
-            displayName: apply
-            inputs:
-              provider: 'azurerm'
-              command: 'apply'
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%      
 Templates:
