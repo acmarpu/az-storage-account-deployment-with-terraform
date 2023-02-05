@@ -135,27 +135,3 @@ jobs:
     storageKey: 'tf.tfstate'
     deployEnv: 'dev'
               
- 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Ref: https://www.youtube.com/watch?v=7CsmBO8KR4U&ab_channel=geralexgr
-
-parameters:
-- name: image
-  displayName: pool image
-  type: string
-  default: ubuntu-latest
-  values:
-    - windows-latest
-    - ubuntu-latest
-    - macos-latest
-
-variables:
-- name: myvar
-  value: ${{parameters.image}}
-
-
-condition: or { eq (variables.myvar, 'ubuntu-latest'), eq(variables.myvar, 'windows-lates')}
-
-
-
