@@ -1,23 +1,25 @@
-az group create -l westus -n terraform-rg
+#ref: https://www.youtube.com/watch?v=kqwzqWcSCYM&ab_channel=skunklabz
 
-az ad sp create-for-rbac -n terraform-rg --role contributor --scope /subscriptions/id/rg/name
+# Crete Azure Resource Group
+### az group create -l westus -n terraform-rg
+
+# Create Service principal and assihan the scope to subscription
+### az ad sp create-for-rbac -n terraform-rg --role contributor --scope /subscriptions/id/rg/name
+
+#create storage account
+### az storage account create --resource-group terraform-rg --name sktaccount --sku Standrad_LRD --encryption-service blob
+
+### az storage account key --resource-group terraform-rg --account-name sktacccount
+
+### azstorage container create --name sktcontainer --account-name sktacccount  --account-key xxxxxx (which got from above command)
+
+#Create Azure service connection
+# create Azure repo 
 
 
-create storage account
-az storage account create --resource-group terraform-rg --name sktaccount --sku Standrad_LRD --encryption-service blob
-
-az storage account key --resource-group terraform-rg --account-name sktacccount
-
-azstorage container create --name sktcontainer --account-name sktacccount  --account-key xxxxxx (which got from above command)
-
-service connection
-create repo
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-create simple tf file
-terraform.tf
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+create simple terraform.tf file
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 terraform {
   backend "azurerm" {
