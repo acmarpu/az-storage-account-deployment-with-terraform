@@ -15,6 +15,10 @@ stages:
         provider: 'azurerm'
         command: 'init'
         backendServiceArm: 'azure-spn'
+        backendAzureRmResourceGroupName: 'terraform-rg'
+        backendAzureRmStorageAccountName: 'sktfaccount'
+        backendAzureRmContainerName: 'sktcontainername'
+        backendazureRmKey: 'terraform.tfstate'
 
     - task: TerraformTaskV3@3
       displayName: validate
@@ -22,6 +26,10 @@ stages:
         provider: 'azurerm'
         command: 'validate'
         backendServiceArm: 'azure-spn'
+        backendAzureRmResourceGroupName: 'terraform-rg'
+        backendAzureRmStorageAccountName: 'sktfaccount'
+        backendAzureRmContainerName: 'sktcontainername'
+        backendazureRmKey: 'terraform.tfstate'
         
       
 - stage: deploy
@@ -46,12 +54,22 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'init'
+              backendServiceArm: 'azure-spn'
+              backendAzureRmResourceGroupName: 'terraform-rg'
+              backendAzureRmStorageAccountName: 'sktfaccount'
+              backendAzureRmContainerName: 'sktcontainername'
+              backendazureRmKey: 'terraform.tfstate'
 
           - task: TerraformTaskV3@3
             displayName: plan
             inputs:
               provider: 'azurerm'
               command: 'plan'
+              backendServiceArm: 'azure-spn'
+              backendAzureRmResourceGroupName: 'terraform-rg'
+              backendAzureRmStorageAccountName: 'sktfaccount'
+              backendAzureRmContainerName: 'sktcontainername'
+              backendazureRmKey: 'terraform.tfstate'
 
           - task: TerraformTaskV3@3
             displayName: apply

@@ -1,7 +1,6 @@
-This repo and in this code shows you how to create a Terraform Azure DevOps pipeline that can be leveraged to create Azure Cloud resources 
-
-
 #ref: https://www.youtube.com/watch?v=kqwzqWcSCYM&ab_channel=skunklabz
+
+This repo and in this code shows you how to create a Terraform Azure DevOps pipeline that can be leveraged to create Azure Cloud resources 
 
 # Crete Azure Resource Group
 ### az group create -l westus -n terraform-rg
