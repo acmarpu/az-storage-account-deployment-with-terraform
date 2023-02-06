@@ -13,12 +13,29 @@ varibles:
 # a variable group
 - group: myvariblegroup
 # a reference to a variable template
+- template: demofolder/myvariabletemplate.yml
+
+
+
+# define variable in pipelien
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- name: my-reg-var
+  value: reg-var
+- group: my-variable-group # this variable group from pipeline library
+- template: myvariabletemplate.yml # this is separate yaml file and if it is in separate folder metion like below
 - template: myvariabletemplate.yml
 
+steps:
+- script: echo $(my-variable-group)
 
-
-
-
+#######################################################################################
+# Variables scope and use of variables:
 
 trigger:
 - main
@@ -27,17 +44,36 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-- group: my-variable-group
+  - name: globalvar
+    value: global
 
-steps:
-- script: echo $(my-variable-group)
+stages:
+  - stage: stageA
+    displayName: stageA
+    variables:
+    - name: stgAvar
+      value: valuestg
+
+    jobs:
+      - job: JobA
+        variables:
+        - name: Jobvar
+          value: jobstg
+  - stage: stageB
+    displayName: stageB
+    jobs:
+      - job: privatevalue jobs
+        steps:
+          - bash: echo $(globalvar)
+          - bash: echo $(stgAvar)
+          - bash: echo $(Jobvar)
 
 
 
 
 
 Ref: https://www.youtube.com/watch?v=7CsmBO8KR4U&ab_channel=geralexgr
-
+ref: https://www.youtube.com/watch?v=S-copHTFW2I&list=PL8NJ7_kgKeUqvN78Wg2Ku2KJO98WjqIzn&index=3&ab_channel=VirenAutomationTesting
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
