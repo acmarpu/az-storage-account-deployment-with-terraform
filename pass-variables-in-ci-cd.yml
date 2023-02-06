@@ -1,3 +1,41 @@
+# Pass Variables in YAML pipeline
+# Go to pipeline
+# Select Variable group 
+# Crete Variables Ex - "my-variable-group"
+
+## Define variable in YAML pipeline which we created in Variable group
+
+# The following examples demonstrates all three
+varibles:
+# a reqular variable 
+- name: myvariable
+  value: myvalue
+# a variable group
+- group: myvariblegroup
+# a reference to a variable template
+- template: myvariabletemplate.yml
+
+
+
+
+
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- group: my-variable-group
+
+steps:
+- script: echo $(my-variable-group)
+
+
+
+
+
 Ref: https://www.youtube.com/watch?v=7CsmBO8KR4U&ab_channel=geralexgr
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
