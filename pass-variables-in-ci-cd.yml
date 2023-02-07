@@ -35,7 +35,7 @@ steps:
 - script: echo $(my-variable-group)
 
 #######################################################################################
-# Variables scope and use of variables:
+# Variables scope and use of variables at Global and Stage and Job level
 
 trigger:
 - main
@@ -43,20 +43,20 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
-variables:
+variables:         # Global level
   - name: globalvar
     value: global
 
 stages:
   - stage: stageA
     displayName: stageA
-    variables:
+    variables:      # Stage level
     - name: stgAvar
       value: valuestg
 
     jobs:
       - job: JobA
-        variables:
+        variables:  # Job level
         - name: Jobvar
           value: jobstg
   - stage: stageB
@@ -64,7 +64,7 @@ stages:
     jobs:
       - job: privatevalue jobs
         steps:
-          - bash: echo $(globalvar)
+          - bash: echo $(globalvar) 
           - bash: echo $(stgAvar)
           - bash: echo $(Jobvar)
 
@@ -76,23 +76,6 @@ Ref: https://www.youtube.com/watch?v=7CsmBO8KR4U&ab_channel=geralexgr
 ref: https://www.youtube.com/watch?v=S-copHTFW2I&list=PL8NJ7_kgKeUqvN78Wg2Ku2KJO98WjqIzn&index=3&ab_channel=VirenAutomationTesting
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-parameters:
-- name: image
-  displayName: pool image
-  type: string
-  default: ubuntu-latest
-  values:
-    - windows-latest
-    - ubuntu-latest
-    - macos-latest
-
-variables:
-- name: myvar
-  value: ${{parameters.image}}
-
-
-condition: or { eq (variables.myvar, 'ubuntu-latest'), eq(variables.myvar, 'windows-lates')}
 
 
 

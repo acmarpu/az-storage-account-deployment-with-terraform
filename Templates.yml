@@ -1,0 +1,139 @@
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%      
+Templates:
+#Templates let you define reusable content, logic, and parameters 
+Templates can be used two ways:
+# to insert reusable content
+# to control what is allowed in a pipeline
+# templatize will allow us to remove all this hard-coded stuff, so we could use it for other projects with in azure devops
+# we are going to creating 3 yaml files to run the pipeline 
+    # terraform-validate.yml
+    # terraform-deploy.yml
+    # azure-pipeline.yml
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+    # terraform-validate.yml
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+parameters:
+  terraformVersion: ''
+  serviceprincipal: ''
+  resourcegroup: ''
+  storageAccountName: ''
+  storageContainerName: ''
+  storageKey: ''
+
+
+jobs:
+  - job: validate
+    continueonError: false
+    steps:
+    - task: TerraformInstaller@0
+      displayName: latest
+      inputs:
+        terraformVersion: ${{parameters.terraformVersion}}
+
+    - task: TerraformTaskV3@3
+      displayName: init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        backendServiceArm: ${{parameters.serviceprincipal}}
+        backendAzureRmResourceGroupName: ${{parameters.resourcegroup}}
+        backendAzureRmStorageAccountName: ${{parameters.storageAccountName}}
+        backendAzureRmContainerName: ${{parameters.storageContainerName}}
+        backendazureRmKey: ${{parameters.storageKey}}
+
+    - task: TerraformTaskV3@3
+      displayName: validate
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+    # terraform-deploy.yml
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+
+parameters:
+  terraformVersion: ''
+  serviceprincipal: ''
+  resourcegroup: ''
+  storageAccountName: ''
+  storageContainerName: ''
+  storageKey: ''
+  deployEnv: ''
+
+
+jobs:
+- deployment: deploy_storage_account
+  continueOnError: false
+  environment: ${{prameters.deployEnv}}
+  strategy:
+    runOnce:
+      deploy:
+        steps: 
+          - checkout: self
+          - task: TerraformInstaller@0
+            displayName: 'install'
+            inputs:
+              terraformVersion: ${{prameters.terraformVersion}}
+
+          - task: TerraformTaskV3@3
+            displayName: init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              backendServiceArm: ${{parameters.serviceprincipal}}
+              backendAzureRmResourceGroupName: ${{parameters.resourcegroup}}
+              backendAzureRmStorageAccountName: ${{parameters.storageAccountName}}
+              backendAzureRmContainerName: ${{parameters.storageContainerName}}
+              backendazureRmKey: ${{parameters.storageKey}}
+
+          - task: TerraformTaskV3@3
+            displayName: plan
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              environmentServiceNameAzureRM: ${{parameters.serviceprincipal}}
+
+          - task: TerraformTaskV3@3
+            displayName: apply
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              environmentServiceNameAzureRM: ${{parameters.serviceprincipal}}
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+      # azure-pipeline.yml
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+
+resources:
+ repositories:
+   - repository: temlates
+     name: tutorials/temlates
+     type: git
+
+jobs:
+- template: terraform-validate.yml@templates
+  parameters:
+    terraformVersion: '0.12.26'
+    serviceprincipal: 'azure-spn'
+    resourcegroup: 'rg'
+    storageAccountName: 'st'
+    storageContainerName: 'con'
+    storageKey: 'tf.tfstate'
+    
+
+- template: terraform-deploy.yml@templates
+  parameters:
+    terraformVersion: '0.12.26'
+    serviceprincipal: 'azure-spn'
+    resourcegroup: 'rg'
+    storageAccountName: 'st'
+    storageContainerName: 'con'
+    storageKey: 'tf.tfstate'
+    deployEnv: 'dev'
+              
+
