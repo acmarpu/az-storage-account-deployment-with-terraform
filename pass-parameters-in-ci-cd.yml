@@ -66,6 +66,11 @@ stages:
 
 ####################################################
 ## Ex-3
+# condition based parameters
+
+trigger: none
+
+
 parameters:
   - name: image
     displayName: pool image
@@ -74,13 +79,21 @@ parameters:
     values:
       - windows-latest
       - ubuntu-latest
+pool:
+   vmImage: ubuntu-latest
 
 variables:
 - name: myvar
   value: ${{parameters.image}}
 
-
-condition: or { eq (variables.myvar, 'ubuntu-latest'), eq(variables.myvar, 'windows-lates')}
+steps:
+   - task: PoweShell@2
+     inputs:
+       targetType: 'inline'
+       script:
+         # write your powershell command here
+         write-host "hello world 
+     condition: or { eq (variables.myvar, 'ubuntu-latest'), eq(variables.myvar, 'windows-lates')}
 
 
 
